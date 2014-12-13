@@ -11,8 +11,8 @@ import edu.uci.jforests.util.Pair;
 class YoungIR362Test {
     public static final void main(String args[]) throws Exception {
 
-        InvertedIndex index = new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder);
-        //InvertedIndex index = new DiskIndexManager().loadIndexFromDisk();;
+        //InvertedIndex index = new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder);
+        InvertedIndex index = new DiskIndexManager(Config.index_folder).loadIndexFromDisk();;
 
 		Manager queryingManager = new Manager(index);
 

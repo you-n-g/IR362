@@ -9,6 +9,8 @@ import java.io.OutputStreamWriter;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+import org.ir362.Config;
+
 /**
  * 约定好的索引格式如下
  * 
@@ -36,9 +38,10 @@ import java.util.logging.Logger;
 public class DiskIndexManager {
     private static final Logger log = Logger.getLogger( DiskIndexManager.class.getName() );
 	
-	public static final String index_folder="/home/young/workspace4.4/IR362/index/";
+	public String index_folder;
 
-	public DiskIndexManager() {
+	public DiskIndexManager(String index_folder) {
+		this.index_folder = index_folder;
 	}
 
     private String getCollectionMetaPath() {
@@ -146,11 +149,41 @@ public class DiskIndexManager {
         }
 	}
 
+    private String getCollectionTitlePostingPath() {
+    	return index_folder + "data.title.posting";
+    }
+
+	private void saveCollectionTitlePosting(InvertedIndex index) {
+    	log.info("Creating Title PostingIndex.......");
+        Posting p = null;
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                  new FileOutputStream(getCollectionPostingPath()), "utf-8"));
+            for (int i = 0; i < index.terms.size(); ++i) {
+                if (i % 2000 == 0) log.info("" + i + " title Posting Finished");
+            	if (i != 0) writer.newLine();
+            	p = index.termTitlePostingMap.get(index.terms.get(i));
+            	for (int j = 0; j < p.df; ++j) {
+                    if (j != 0) writer.write("\t");
+                    writer.write(String.valueOf(p.data[j][0]));
+                    writer.write("\t");
+                    writer.write(String.valueOf(p.data[j][1]));
+            	}
+            }
+        } catch (IOException ex) {
+          // report
+        } finally {
+           try {writer.close();} catch (Exception ex) {}
+        }
+	}
+
     public void saveIndexToDisk(InvertedIndex index) {
     	saveCollectionMeta(index);
     	saveCollectionDict(index);
     	saveCollectionPosting(index);
     	saveCollectionDocMeta(index);
+    	saveCollectionTitlePosting(index);
     }
 
 	private void loadCollectionMeta(InvertedIndex index) throws IOException {
@@ -179,7 +212,10 @@ public class DiskIndexManager {
             	items = line.split("\t");
             	index.terms.add(items[0]);
             	index.termPostingMap.put(items[0], new Posting(term_index, Integer.parseInt(items[1])));
+            	// 这里也要初始化title的倒排索引
+            	index.termTitlePostingMap.put(items[0], new Posting(term_index));
                 line = br.readLine();
+                if (term_index % 2000 == 0) log.info("" + term_index + " terms in Dict loading Finished");
                 term_index += 1;
             }
         } finally {
@@ -204,6 +240,7 @@ public class DiskIndexManager {
             		p.data[i][1] = Integer.parseInt(items[i * 2 + 1]);
             	}
                 line = br.readLine();
+                if (term_index % 2000 == 0) log.info("" + term_index + " Posting loading Finished");
                 term_index += 1;
             }
         } finally {
@@ -216,12 +253,41 @@ public class DiskIndexManager {
         BufferedReader br = new BufferedReader(new FileReader(getCollectionDocMetaPath()));
         String line;
         String items[];
+        int finished_docs = 0;
         try {
             line = br.readLine();
             while (line != null) {
             	items = line.split("\t");
             	index.documentsMetaInfo.put(Integer.parseInt(items[0]), new DocMeta(Integer.parseInt(items[1])));
                 line = br.readLine();
+                if (finished_docs % 2000 == 0) log.info("" + finished_docs + " DocMeta loading Finished");
+                finished_docs += 1;
+            }
+        } finally {
+            br.close();
+        }
+	}
+
+	private void loadCollectionTitlePosting(InvertedIndex index) throws IOException {
+    	log.info("Loading Title Posting.......");
+        BufferedReader br = new BufferedReader(new FileReader(getCollectionPostingPath()));
+        String line;
+        String items[];
+        Posting p;
+        int term_index=0;
+        try {
+            line = br.readLine();
+            while (line != null) {
+            	items = line.split("\t");
+            	p = index.termTitlePostingMap.get(index.terms.get(term_index));
+            	p.init_data(items.length / 2);
+            	for (int i = 0; i < p.df; ++i) {
+            		p.data[i][0] = Integer.parseInt(items[i * 2]);
+            		p.data[i][1] = Integer.parseInt(items[i * 2 + 1]);
+            	}
+                line = br.readLine();
+                if (term_index % 2000 == 0) log.info("" + term_index + " Posting loading Finished");
+                term_index += 1;
             }
         } finally {
             br.close();
@@ -229,13 +295,13 @@ public class DiskIndexManager {
 	}
 
     public InvertedIndex loadIndexFromDisk() {
-    	// TODO  如何从磁盘中读取索引
     	InvertedIndex index = new InvertedIndex();
     	try {
 			loadCollectionMeta(index);
             loadCollectionDict(index);
             loadCollectionPosting(index);
             loadCollectionDocMeta(index);
+            loadCollectionTitlePosting(index);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -244,7 +310,7 @@ public class DiskIndexManager {
     }
 
 	public static final void main(String args[]) {
-    	new DiskIndexManager().saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder));
+    	//new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
 		//new DiskIndexManager().loadIndexFromDisk();
     }
 }

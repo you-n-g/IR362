@@ -1,10 +1,15 @@
 package org.ir362.indexing;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.fnlp.nlp.cn.CNFactory;
 
 public class Document {
@@ -12,6 +17,7 @@ public class Document {
 
     private String path;
     private int id;
+    private boolean is_splitted;
 
     // 信息在此处 TODO: 信息格式转换
     private String title="";
@@ -20,8 +26,9 @@ public class Document {
     private String commentNumber="";
     private String text="";
 
-	public Document(String path) throws IOException {
+	public Document(String path, boolean is_splitted) throws IOException {
 		this.path = path;
+		this.is_splitted = is_splitted;
 		String tmp[] = path.split("/");
 		this.id = Integer.parseInt(tmp[tmp.length - 1]); // 获得用户id
 		parse();
@@ -73,15 +80,33 @@ public class Document {
 	}
 	
 	public String[] getTextTerms() {
-		
 		try {
-			return splitWords(text);
+			if (is_splitted) {
+				return (title + "\t" + text).split("\t");
+			} else {
+				// TODO 这个地方希望将 text 和 title 都集中在一起
+                return splitWords(text);
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
+
+	public String[] getTitleTerms() {
+		try {
+			if (is_splitted) 
+				return (title).split("\t");
+			else 
+                return splitWords(title);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	
 	static CNFactory factory = null;
 	public static String[] splitWords(String str) throws Exception {
@@ -98,10 +123,48 @@ public class Document {
 		}
         return words;
 	}
+
+	public void saveParsedFile(String path) {
+		// TODO 我这里是当字符串处理的， 如果类型变了可能会导致后面的冲突
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                  new FileOutputStream(path), "utf-8"));
+            writer.write(title_prefix + StringUtils.join(splitWords(title), '\t'));
+            writer.newLine();
+            writer.write(pubDate_prefix + pubDate);
+            writer.newLine();
+            writer.write(url_prefix + url);
+            writer.newLine();
+            writer.write(commentNumber_prefix + commentNumber);
+            writer.newLine();
+            writer.write(text_prefix + StringUtils.join(splitWords(text), '\t'));
+        } catch (Exception ex) {
+          // report
+        } finally {
+           try {writer.close();} catch (Exception ex) {}
+        }
+	}
+	
+
+	private static void saveSplittedCorpus() throws IOException {
+		int numberOfDocuments = 0;
+		Document doc;
+    	for (String path: CorpusIndexMaker.listFilesForFolder(new File(CorpusIndexMaker.corpus_folder))) {
+    		if (numberOfDocuments % 100 == 0) log.info("Parsed " + numberOfDocuments + " Documents");
+            doc = new Document(path, false);
+            doc.saveParsedFile(new File(CorpusIndexMaker.splitted_corpus_folder, CorpusIndexMaker.getBaseName(path)).getPath());
+    		numberOfDocuments += 1;
+    	}
+	}
+
     public static void main(String[] args) throws Exception {
-        for(String word : splitWords("关注自然语言处理、语音识别、深度学习等方向的前沿技术和业界动态。")) {
+    	/* 
+        for(String word : splitWords("关注自然语言处理、语音识jj别、深度学习等方向的前沿技术和业界动态。")) {
             System.out.print(word + "|");
         }
         System.out.println();
+        */
+    	//saveSplittedCorpus();  // 我的功能是将 未分词的语聊转换为已分词语料
     }
 }

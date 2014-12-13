@@ -8,7 +8,8 @@ import javax.print.attribute.standard.NumberOfDocuments;
 
 public class InvertedIndex {
 	public ArrayList<String> terms;
-	public HashMap<String, Posting> termPostingMap;
+	public HashMap<String, Posting> termPostingMap; // text的倒排索引
+	public HashMap<String, Posting> termTitlePostingMap; // title的倒排索引
 	public HashMap<Integer, DocMeta> documentsMetaInfo;
 	
 	private int numberOfDocuments;
