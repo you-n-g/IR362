@@ -146,9 +146,9 @@ public class CorpusIndexMaker {
 				for (String term: doc.getTitleTerms()) {
 					// ** 因为建立text索引时title已经放在text中， 所以title中的每个词汇必定在text中了 ** 
                     ArrayList<Pair<Integer, Integer>> pairList = postIndexMap.get(term);
-                    tmp_pair = pairList.get(pairList.size() - 1);
-                    if (tmp_pair.getFirst() == doc.getID())
-                        tmp_pair.snd += 1;
+                    if (pairList.size() > 0 &&  pairList.get(pairList.size() - 1).getFirst() == doc.getID()) {
+                        pairList.get(pairList.size() - 1).snd += 1;
+                    }
                     else
                         pairList.add(new Pair<Integer, Integer>(doc.getID(), 1));
 				}
@@ -165,6 +165,6 @@ public class CorpusIndexMaker {
     }
 
 	public static final void main(String args[]) {
-		InvertedIndex index = new CorpusIndexMaker().makeIndexFromCorpus(splitted_corpus_folder, true);
+		//InvertedIndex index = new CorpusIndexMaker().makeIndexFromCorpus(splitted_corpus_folder, true);
     }
 }

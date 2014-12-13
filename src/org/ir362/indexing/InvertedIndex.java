@@ -19,6 +19,7 @@ public class InvertedIndex {
     public InvertedIndex() {
          terms = new ArrayList<String>();
          termPostingMap = new HashMap<String, Posting>();
+         termTitlePostingMap = new HashMap<String, Posting>();
          documentsMetaInfo = new HashMap<Integer, DocMeta>();
     }
     

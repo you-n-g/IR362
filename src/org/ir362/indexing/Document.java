@@ -85,7 +85,17 @@ public class Document {
 				return (title + "\t" + text).split("\t");
 			} else {
 				// TODO 这个地方希望将 text 和 title 都集中在一起
-                return splitWords(text);
+                String[] getText =  splitWords(text);
+                String[] getTitle = splitWords(title);
+                String[] titleAndTest = new String[getText.length+getTitle.length];
+                int textLength = getText.length;
+                for(int i= 0;i<getText.length;i++){
+                    titleAndTest[i] = getText[i];
+                }
+                for(int i= 0;i<getTitle.length;i++){
+                    titleAndTest[i+textLength] = getTitle[i];
+                }
+                return titleAndTest;
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

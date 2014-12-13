@@ -159,7 +159,7 @@ public class DiskIndexManager {
         BufferedWriter writer = null;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(
-                  new FileOutputStream(getCollectionPostingPath()), "utf-8"));
+                  new FileOutputStream(getCollectionTitlePostingPath()), "utf-8"));
             for (int i = 0; i < index.terms.size(); ++i) {
                 if (i % 2000 == 0) log.info("" + i + " title Posting Finished");
             	if (i != 0) writer.newLine();
@@ -308,9 +308,14 @@ public class DiskIndexManager {
 		}
     	return index;
     }
+    
+    public static void createCorpus() {
+    	//new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
+    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder, false));
+    }
 
 	public static final void main(String args[]) {
-    	//new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
+		createCorpus();
 		//new DiskIndexManager().loadIndexFromDisk();
     }
 }
