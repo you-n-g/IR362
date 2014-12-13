@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.Element;
 
@@ -15,11 +16,13 @@ import javax.lang.model.element.Element;
 /* 这里假设语料的文件名就是数字，而且就是文档id */
 
 public class CorpusIndexMaker {
+    private static final Logger log = Logger.getLogger( CorpusIndexMaker.class.getName() );
     public final static String  corpus_folder = "/home/young/workspace4.4/IR362/corpus";
     
     // 从语料庫建立索引相关
     public static ArrayList<String> listFilesForFolder(final File folder) {
     	// 这里保证返回的 文档名称都是已经拍好序了
+    	log.info("Begin Loading listFilesForFolder....");
     	ArrayList<String> file_paths = new ArrayList<String>();
     	TreeMap<Integer, Integer> map4sort = new TreeMap<Integer, Integer>();
         for (final File fileEntry : folder.listFiles()) {
@@ -28,7 +31,11 @@ public class CorpusIndexMaker {
             	continue; //如果发现文件夹就不作为
             } else {
                 //file_paths.add(fileEntry.getAbsolutePath());
-            	map4sort.put(Integer.parseInt(fileEntry.getName()), 0);
+                try {
+                    map4sort.put(Integer.parseInt(fileEntry.getName()), 0);
+                } catch (NumberFormatException e) {
+                    log.info("skip: " + fileEntry.getName());
+                }
             }
         }
 
@@ -55,6 +62,7 @@ public class CorpusIndexMaker {
         int numberOfDocuments = 0;
         int docLength;
     	for (String path: listFilesForFolder(new File(corpus_folder))) {
+    		if (numberOfDocuments % 100 == 0) log.info("Parsed " + numberOfDocuments + " Documents");
     		//documents.add
     		numberOfDocuments += 1;
     		try {

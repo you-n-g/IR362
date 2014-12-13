@@ -1,18 +1,15 @@
 package org.ir362.indexing;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
-import javax.xml.bind.ParseConversionEvent;
+import java.util.logging.Logger;
 
 import org.fnlp.nlp.cn.CNFactory;
-import org.fnlp.util.exception.LoadModelException;
-
-import edu.uci.jforests.util.ArraysUtil;
 
 public class Document {
+    private static final Logger log = Logger.getLogger( Document.class.getName() );
+
     private String path;
     private int id;
 
@@ -93,7 +90,12 @@ public class Document {
              factory = CNFactory.getInstance("models");
 
         // 使用分词器对中文句子进行分词，得到分词结果
-        String[] words = factory.seg(str);
+        String[] words = {};
+		try {
+            words = factory.seg(str);
+		} catch (NullPointerException e) {
+			log.info("Error when spliting:" + str);
+		}
         return words;
 	}
     public static void main(String[] args) throws Exception {
