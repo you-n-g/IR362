@@ -1,0 +1,6 @@
+package org.ir362;
+
+public class Config {
+    public final static String project_folder_path = "/home/young/workspace4.4/IR362/";
+	public final static String index_folder = Config.project_folder_path + "index/";
+}
