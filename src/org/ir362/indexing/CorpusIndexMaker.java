@@ -97,7 +97,12 @@ public class CorpusIndexMaker {
 						postIndexMap.put(term, element);
 					}
 				}
-				index.addDocMeta(doc.getID(), new DocMeta(docLength));
+				index.addDocMeta(doc.getID(), 
+						new DocMeta(docLength, 
+								Integer.parseInt(doc.getCommentNumber()),
+                                doc.getPubDate(),
+                                doc.getUrl()
+                            ));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

@@ -37,6 +37,7 @@ import org.ir362.Config;
 
 public class DiskIndexManager {
     private static final Logger log = Logger.getLogger( DiskIndexManager.class.getName() );
+    public final static String  corpus_folder0 = "/home/young/workspace/IR362/corpus/";
 	
 	public String index_folder;
 
@@ -120,7 +121,7 @@ public class DiskIndexManager {
     private String getCollectionDocMetaPath() {
     	return index_folder + "data.doc.meta";
     }
-
+//doc.meta
 	private void saveCollectionDocMeta(InvertedIndex index) {
     	log.info("Creating DocMeta.......");
         BufferedWriter writer = null;
@@ -137,10 +138,16 @@ public class DiskIndexManager {
             	if (flag)
             		flag = false;
             	else 
-            		writer.newLine();
+            	writer.newLine();
                 writer.write(String.valueOf(entry.getKey()));
                 writer.write("\t");
                 writer.write(String.valueOf(entry.getValue().docLength));
+                writer.write("\t");
+                writer.write(String.valueOf(entry.getValue().commentNumber));
+                writer.write("\t");
+                writer.write(entry.getValue().pubDate);
+                writer.write("\t");
+                writer.write(entry.getValue().url);
             }
         } catch (IOException ex) {
           // report
@@ -258,7 +265,8 @@ public class DiskIndexManager {
             line = br.readLine();
             while (line != null) {
             	items = line.split("\t");
-            	index.documentsMetaInfo.put(Integer.parseInt(items[0]), new DocMeta(Integer.parseInt(items[1])));
+            	index.documentsMetaInfo.put(Integer.parseInt(items[0]),
+            			new DocMeta(Integer.parseInt(items[1]), Integer.parseInt(items[2]), items[3], items[4]));
                 line = br.readLine();
                 if (finished_docs % 2000 == 0) log.info("" + finished_docs + " DocMeta loading Finished");
                 finished_docs += 1;
@@ -312,6 +320,13 @@ public class DiskIndexManager {
     public static void createCorpus() {
     	//new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
     	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder, false));
+    }
+    
+    public static void clearDiskIndexStopWords() {
+        DiskIndexManager dmanager = new DiskIndexManager(Config.index_folder);
+    	InvertedIndex index = dmanager.loadIndexFromDisk();
+    	index.clearStopWords();
+    	dmanager.saveIndexToDisk(index);
     }
 
 	public static final void main(String args[]) {

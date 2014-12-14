@@ -3,14 +3,20 @@ package org.ir362.indexing;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.fnlp.nlp.cn.CNFactory;
+
+
 
 public class Document {
     private static final Logger log = Logger.getLogger( Document.class.getName() );
@@ -18,6 +24,7 @@ public class Document {
     private String path;
     private int id;
     private boolean is_splitted;
+    static Set stopWordSet = new HashSet<String>();
 
     // 信息在此处 TODO: 信息格式转换
     private String title="";
@@ -126,8 +133,42 @@ public class Document {
 
         // 使用分词器对中文句子进行分词，得到分词结果
         String[] words = {};
+        String finals = "";
+        
+    	String system_charset = "UTF-8";
 		try {
             words = factory.seg(str);
+            FileInputStream fileS = new FileInputStream(new File("StopWordsTable.txt"));
+    		BufferedReader br = new BufferedReader(new InputStreamReader(fileS,"UTF-8"));
+    			
+    		String stopword = null;
+    		while((stopword = br.readLine())!=null)
+    			stopWordSet.add(stopword);
+    			
+    		String stpw = stopWordSet.toString();
+    		String regex = ", ";
+    		String[] stopcell = stpw.split(regex);
+            
+    	    for (int m = 0; m < words.length; m++) { 
+//    	    	System.out.print(words[m]);
+    	 		for(int j = 0; j < stopcell.length; j++){
+    	 			if((words[m] != null)  && (words[m].equals(stopcell[j]))){
+    	 				words[m] = "";
+//    	 				System.out.print(m);
+    				}				
+    				}
+    	 		if(!words[m].equals("")){
+    	 			finals += words[m]+" ";
+//    				System.out.print(words[m]);
+    				
+    			}
+    	 		}
+    	    String[] finalWords = finals.split(" ");
+    	    br.close();
+    	    fileS.close();
+    	    
+
+            return finalWords;
 		} catch (NullPointerException e) {
 			log.info("Error when spliting:" + str);
 		}
@@ -166,6 +207,40 @@ public class Document {
             doc.saveParsedFile(new File(CorpusIndexMaker.splitted_corpus_folder, CorpusIndexMaker.getBaseName(path)).getPath());
     		numberOfDocuments += 1;
     	}
+	}
+	
+	//增加getter和setter函数
+
+	public String getPubDate() {
+		return pubDate;
+	}
+
+	public void setPubDate(String pubDate) {
+		this.pubDate = pubDate;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getCommentNumber() {
+		return commentNumber;
+	}
+
+	public void setCommentNumber(String commentNumber) {
+		this.commentNumber = commentNumber;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text0) {
+		this.text = text0;
 	}
 
     public static void main(String[] args) throws Exception {
