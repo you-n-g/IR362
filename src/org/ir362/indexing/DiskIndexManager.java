@@ -37,7 +37,6 @@ import org.ir362.Config;
 
 public class DiskIndexManager {
     private static final Logger log = Logger.getLogger( DiskIndexManager.class.getName() );
-    public final static String  corpus_folder0 = "/home/young/workspace/IR362/corpus/";
 	
 	public String index_folder;
 
@@ -320,8 +319,8 @@ public class DiskIndexManager {
     }
     
     public static void createCorpus() {
-//    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
-    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder, false));
+    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
+//    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder, false));
     }
     
     public static void clearDiskIndexStopWords() {

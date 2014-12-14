@@ -20,8 +20,8 @@ import org.ir362.Config;
 
 public class CorpusIndexMaker {
     private static final Logger log = Logger.getLogger( CorpusIndexMaker.class.getName() );
-    public final static String  corpus_folder = Config.project_folder_path + "corpus/";
-    public final static String  splitted_corpus_folder = Config.project_folder_path + "splitted_corpus/";
+    public final static String  corpus_folder = Config.project_folder_path + "corpus.big/";
+    public final static String  splitted_corpus_folder = Config.project_folder_path + "splitted_corpus.big/";
     
     // 从语料庫建立索引相关
     public static ArrayList<String> listFilesForFolder(final File folder) {

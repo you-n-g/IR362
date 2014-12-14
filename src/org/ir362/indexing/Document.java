@@ -55,7 +55,9 @@ public class Document {
 	
 	public void parseLine(String line) {
 		if (line.startsWith(title_prefix)) {
-			title = line.substring(title_prefix.length()).replaceAll("\t", "");
+			title = line.substring(title_prefix.length());
+			if (!is_splitted)
+					title = title.replaceAll("\t", "");
 		}
 		if (line.startsWith(pubDate_prefix)) {
 			pubDate = line.substring(pubDate_prefix.length());
@@ -68,6 +70,8 @@ public class Document {
 		}
 		if (line.startsWith(text_prefix)) {
 			text = line.substring(text_prefix.length()).replaceAll("\t", "");
+			if (!is_splitted)
+				text = text.replaceAll("\t", "");
 		}
 	}
 	
@@ -91,9 +95,8 @@ public class Document {
 	public String[] getTextTerms() {
 		try {
 			if (is_splitted) {
-				return (title + "\t" + text).split("\t");
+				return filterStopWords((title + "\t" + text).split("\t"));
 			} else {
-				// TODO 这个地方希望将 text 和 title 都集中在一起
                 String[] getText =  splitWords(text);
                 String[] getTitle = splitWords(title);
                 String[] titleAndTest = new String[getText.length+getTitle.length];
@@ -116,7 +119,7 @@ public class Document {
 	public String[] getTitleTerms() {
 		try {
 			if (is_splitted) 
-				return (title).split("\t");
+				return filterStopWords((title).split("\t"));
 			else 
                 return splitWords(title);
 		} catch (Exception e) {
@@ -127,6 +130,28 @@ public class Document {
 	}
 
 	
+	public static String[] filterStopWords(String[] words) {
+        ArrayList<String> final_words = new ArrayList<String>();
+            try {
+            	if (stopWordSet.isEmpty()) { // 只有停用词没有时才加到set中
+                    FileInputStream fileS = new FileInputStream(new File(Config.project_folder_path + "StopWordsTable.txt"));
+                    BufferedReader br = new BufferedReader(new InputStreamReader(fileS,"UTF-8"));
+                    String stopword = null;
+                    while((stopword = br.readLine())!=null)
+                        stopWordSet.add(stopword);
+                    br.close();
+                    fileS.close();
+                }
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+            
+    	    for (int m = 0; m < words.length; m++)
+                if (!stopWordSet.contains(words[m]))
+                	final_words.add(words[m]);
+            return  final_words.toArray(new String[final_words.size()]);
+	}
+	
 	static CNFactory factory = null;
 	public static String[] splitWords(String str) throws Exception {
         // 创建中文处理工厂对象，并使用“models”目录下的模型文件初始化
@@ -135,28 +160,13 @@ public class Document {
 
         // 使用分词器对中文句子进行分词，得到分词结果
         String[] words = {};
-        ArrayList<String> final_words = new ArrayList<String>();
         
-		try {
-            words = factory.seg(str);
-            if (stopWordSet.isEmpty()) { // 只有停用词没有时才加到set中
-                FileInputStream fileS = new FileInputStream(new File(Config.project_folder_path + "StopWordsTable.txt"));
-                BufferedReader br = new BufferedReader(new InputStreamReader(fileS,"UTF-8"));
-                String stopword = null;
-                while((stopword = br.readLine())!=null)
-                    stopWordSet.add(stopword);
-                br.close();
-                fileS.close();
-            }
-            
-    	    for (int m = 0; m < words.length; m++)
-                if (!stopWordSet.contains(words[m]))
-                	final_words.add(words[m]);
-            return (String[]) final_words.toArray(new String[final_words.size()]);
+        try {   
+        	words = factory.seg(str);
 		} catch (NullPointerException e) {
-			log.info("Error when spliting:" + str);
+			log.info("Error when spliting:" + words);
 		}
-        return words;
+        return filterStopWords(words);
 	}
 
 	public void saveParsedFile(String path) {
