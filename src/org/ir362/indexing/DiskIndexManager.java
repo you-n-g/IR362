@@ -6,10 +6,14 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.ir362.Config;
+
+import edu.uci.jforests.util.Pair;
 
 /**
  * 约定好的索引格式如下
@@ -187,12 +191,49 @@ public class DiskIndexManager {
         }
 	}
 
+    private String getCollectionDirectPostingPath() {
+    	return index_folder + "data.direct.posting";
+    }
+
+    //正排索引相关
+	public void saveCollectionDirectPosting(InvertedIndex index) {
+    	log.info("Creating Direct PostingIndex.......");
+        Posting p = null;
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                  new FileOutputStream(getCollectionDirectPostingPath()), "utf-8"));
+
+            DirectIndex dindex = new DirectIndex();
+            dindex.loadFromInvertedIndex(index);
+
+            int i = 0;
+            for (Map.Entry<Integer,ArrayList<Pair<Integer, Integer>>> entry: dindex.docPosting.entrySet()) {
+                if (i % 2000 == 0) log.info("" + i + " Direct Posting Finished");
+            	if (i++ != 0) writer.newLine();
+                writer.write(String.valueOf(entry.getKey()));
+            	for (Pair<Integer, Integer> pair: entry.getValue()) {
+                    writer.write("\t");
+                    writer.write(String.valueOf(pair.getFirst()));
+                    writer.write("\t");
+                    writer.write(String.valueOf(pair.getSecond()));
+            	}
+            }
+        } catch (IOException ex) {
+          // report
+        } finally {
+           try {writer.close();} catch (Exception ex) {}
+        }
+	}
+
+
     public void saveIndexToDisk(InvertedIndex index) {
     	saveCollectionMeta(index);
     	saveCollectionDict(index);
     	saveCollectionPosting(index);
     	saveCollectionDocMeta(index);
     	saveCollectionTitlePosting(index);
+    	saveCollectionDirectPosting(index);
     }
 
 	private void loadCollectionMeta(InvertedIndex index) throws IOException {
@@ -331,6 +372,8 @@ public class DiskIndexManager {
     	dmanager.saveIndexToDisk(index);
     }
 
+    
+    
 	public static final void main(String args[]) {
 		createCorpus();
 		//new DiskIndexManager().loadIndexFromDisk();
