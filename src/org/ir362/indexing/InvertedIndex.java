@@ -14,6 +14,8 @@ import java.util.Set;
 
 import javax.print.attribute.standard.NumberOfDocuments;
 
+import org.ir362.Config;
+
 public class InvertedIndex {
 	public ArrayList<String> terms;
 	public HashMap<String, Posting> termPostingMap; // text的倒排索引
@@ -67,9 +69,8 @@ public class InvertedIndex {
 		BufferedReader br = null;
 		String stopword = null;
 
-
 		try {
-			fileS = new FileInputStream(new File("StopWordsTable.txt"));
+			fileS = new FileInputStream(new File(Config.project_folder_path + "StopWordsTable.txt"));
 			br = new BufferedReader(new InputStreamReader(fileS,"UTF-8"));
 			while((stopword = br.readLine())!=null)
 				stopWordSet.add(stopword);
@@ -81,25 +82,14 @@ public class InvertedIndex {
 			e.printStackTrace();
 		}
 		
-		String stpw = stopWordSet.toString();
-		String regex = ", ";
-		String[] stopcell = stpw.split(regex);
-		
-		for (String term: terms) {
-			for(int j = 0; j < stopcell.length; j++){
-			// if  in stopWords {
-				if((term != null)  && (term.equals(stopcell[j]))){
-					termPostingMap.remove(term);
-					termTitlePostingMap.remove(term);
-				}
-				else if((term != null)  && (!term.equals(stopcell[j])))
-					clear_terms.add(term);
-			
-			// } else
-			}
-			
-			
-		}
+		for (String term: terms)
+            if(stopWordSet.contains(term)){
+                termPostingMap.remove(term);
+                termTitlePostingMap.remove(term);
+            }
+            else
+                clear_terms.add(term);
+		terms = clear_terms;
 	}
 
     public static final void main(String args[]) {

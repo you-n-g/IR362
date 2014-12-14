@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+
 import edu.uci.jforests.util.Pair;
 
 import org.apache.commons.lang3.StringUtils;
@@ -189,6 +190,12 @@ public class SearchController {
             json_arr.add(id);
 		return json_arr.toJSONString();
 	}
+	
+	/*
+	public String highlightKeywords() {
+		
+	}
+	*/
 	
 	public String getSingleDocJsonInfo(int docID, String[] terms) {
 		if (terms == null)
