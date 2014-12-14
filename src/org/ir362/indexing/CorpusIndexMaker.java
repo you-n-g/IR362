@@ -20,8 +20,11 @@ import org.ir362.Config;
 
 public class CorpusIndexMaker {
     private static final Logger log = Logger.getLogger( CorpusIndexMaker.class.getName() );
-    public final static String  corpus_folder = Config.project_folder_path + "corpus.big/";
-    public final static String  splitted_corpus_folder = Config.project_folder_path + "splitted_corpus.big/";
+//    public final static String  corpus_folder = Config.project_folder_path + "corpus.big/";
+    public final static String  corpus_folder = Config.project_folder_path + "corpus/";
+//    public final static String  corpus_folder = Config.project_folder_path + "corpus.small/";
+//    public final static String  splitted_corpus_folder = Config.project_folder_path + "splitted_corpus.big/";
+    public final static String  splitted_corpus_folder = Config.project_folder_path + "splitted_corpus/";
     
     // 从语料庫建立索引相关
     public static ArrayList<String> listFilesForFolder(final File folder) {
@@ -168,6 +171,27 @@ public class CorpusIndexMaker {
 			postIndexMap.remove(entry); // 为了释放内存
 			term_index++;
 		}
+    }
+    
+    /**
+     * 我的功能是将语料庫中的title 更新到 index的 MetaDoc中
+     */
+    public void reloadMetaDocTitleFromDoc(InvertedIndex index, String corpus_folder) {
+    	boolean is_splitted = false; 
+        Document doc = null;
+        int numberOfDocuments = 0;
+    	for (String path: listFilesForFolder(new File(corpus_folder))) {
+    		if (numberOfDocuments % 500 == 0) {
+    			log.info("Parsed " + numberOfDocuments + " Documents' title!!!");
+    		}
+    		numberOfDocuments += 1;
+    		try {
+				doc = new Document(path, is_splitted);
+				index.documentsMetaInfo.get(doc.getID()).title = doc.getTitle();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    	}
     }
 
 	public static final void main(String args[]) {

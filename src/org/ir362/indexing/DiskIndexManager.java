@@ -79,7 +79,7 @@ public class DiskIndexManager {
             writer = new BufferedWriter(new OutputStreamWriter(
                   new FileOutputStream(getCollectionDictPath()), "utf-8"));
             for (int i = 0; i < index.terms.size(); ++i) {
-                if (i % 2000 == 0) log.info("" + i + " Finished");
+                if (i % 8000 == 0) log.info("" + i + "dict Finished");
             	if (i != 0) writer.newLine();
             	writer.write(index.terms.get(i));
                 writer.write("\t");
@@ -104,7 +104,7 @@ public class DiskIndexManager {
             writer = new BufferedWriter(new OutputStreamWriter(
                   new FileOutputStream(getCollectionPostingPath()), "utf-8"));
             for (int i = 0; i < index.terms.size(); ++i) {
-                if (i % 2000 == 0) log.info("" + i + " Finished");
+                if (i % 8000 == 0) log.info("" + i + "PostingIndex Finished");
             	if (i != 0) writer.newLine();
             	p = index.termPostingMap.get(index.terms.get(i));
             	for (int j = 0; j < p.df; ++j) {
@@ -124,7 +124,7 @@ public class DiskIndexManager {
     private String getCollectionDocMetaPath() {
     	return index_folder + "data.doc.meta";
     }
-//doc.meta
+
 	private void saveCollectionDocMeta(InvertedIndex index) {
     	log.info("Creating DocMeta.......");
         BufferedWriter writer = null;
@@ -137,7 +137,7 @@ public class DiskIndexManager {
             flag = true;
             for (Entry<Integer, DocMeta> entry: index.documentsMetaInfo.entrySet()) {
             	++i;
-                if (i % 500 == 0) log.info("" + i + " Finished");
+                if (i % 8000 == 0) log.info("" + i + "DocMeta Finished");
             	if (flag)
             		flag = false;
             	else 
@@ -360,8 +360,8 @@ public class DiskIndexManager {
     }
     
     public static void createCorpus() {
-    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
-//    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder, false));
+//    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
+    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder, false));
     }
     
     public static void clearDiskIndexStopWords() {
@@ -371,10 +371,17 @@ public class DiskIndexManager {
     	dmanager.saveIndexToDisk(index);
     }
 
-    
+    public static void update_title() {
+    	DiskIndexManager dm = new DiskIndexManager(Config.index_folder);
+    	CorpusIndexMaker cm = new CorpusIndexMaker();
+    	InvertedIndex index = dm.loadIndexFromDisk();
+    	cm.reloadMetaDocTitleFromDoc(index, CorpusIndexMaker.corpus_folder);
+    	dm.saveCollectionDocMeta(index);
+    }
     
 	public static final void main(String args[]) {
-		createCorpus();
+		 createCorpus();
+//		update_title();
 		//new DiskIndexManager().loadIndexFromDisk();
     }
 }

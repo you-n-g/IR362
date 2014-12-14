@@ -69,7 +69,7 @@ public class Document {
 			commentNumber = line.substring(commentNumber_prefix.length());
 		}
 		if (line.startsWith(text_prefix)) {
-			text = line.substring(text_prefix.length()).replaceAll("\t", "");
+			text = line.substring(text_prefix.length());
 			if (!is_splitted)
 				text = text.replaceAll("\t", "");
 		}

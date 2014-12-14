@@ -10,10 +10,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
 import edu.uci.jforests.util.Pair;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ir362.indexing.CorpusIndexMaker;
 import org.ir362.indexing.DiskIndexManager;
 import org.ir362.indexing.DocMeta;
 import org.ir362.indexing.InvertedIndex;
@@ -31,10 +31,12 @@ public class SearchController {
 	public String pubDate = "";
 	private static String text_prefix = "text:";
 	private static String pubDate_prefix = "pubDate:";
-	public final static String  files_folder = Config.project_folder_path + "corpus/";
 	
 	static SearchController sController = null;
 	
+	static {
+		SearchController.sController = getController();
+	}
 	
 	public String[] last_search_terms; // TODO 这个应该和某次搜索联系起来
 	
@@ -46,7 +48,7 @@ public class SearchController {
 	
 	public String getSnippet(int docID, String[] terms) {//test file：9870
 		//找到文章里面相应字符串的内容，然后添加到字符串里面
-		String path = files_folder + docID;
+		String path = CorpusIndexMaker.corpus_folder + docID;
 		String Text = "";
 		FileInputStream fileS = null;
 		BufferedReader br = null;
@@ -213,10 +215,10 @@ public class SearchController {
 		return json.toJSONString();
 	}
 	
-	static public SearchController getController() {
-		if (sController == null) {
-			sController = new SearchController();
-		}
+	synchronized static public SearchController getController() {
+        if (sController == null) {
+            sController = new SearchController();
+        }
 		return sController;
 	}
 

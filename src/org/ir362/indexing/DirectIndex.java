@@ -35,11 +35,11 @@ public class DirectIndex {
 	}
 	
 	public static void createDirectIndex() {
-    	new DiskIndexManager(Config.index_folder).saveCollectionDirectPosting(
-    			new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder, false));
+		DiskIndexManager dm = new DiskIndexManager(Config.index_folder);
+    	dm.saveCollectionDirectPosting(dm.loadIndexFromDisk());
 	}
 
-	public static final void main(String args) {
+	public static final void main(String[] args) {
 		createDirectIndex();
 	}
 }
