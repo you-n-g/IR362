@@ -1,8 +1,10 @@
 package org.ir362.querying.parser;
 
 import java.util.LinkedList;
+import java.util.logging.Logger;
 
 public class MultiTermQuery {
+    private static final Logger log = Logger.getLogger( MultiTermQuery.class.getName() );
 	
 	protected LinkedList<SingleTermQuery> termList = new LinkedList<SingleTermQuery>();
 	

@@ -148,6 +148,8 @@ public class DiskIndexManager {
                 writer.write(entry.getValue().pubDate);
                 writer.write("\t");
                 writer.write(entry.getValue().url);
+                writer.write("\t");
+                writer.write(entry.getValue().title);
             }
         } catch (IOException ex) {
           // report
@@ -266,7 +268,7 @@ public class DiskIndexManager {
             while (line != null) {
             	items = line.split("\t");
             	index.documentsMetaInfo.put(Integer.parseInt(items[0]),
-            			new DocMeta(Integer.parseInt(items[1]), Integer.parseInt(items[2]), items[3], items[4]));
+            			new DocMeta(Integer.parseInt(items[1]), Integer.parseInt(items[2]), items[3], items[4], items[5]));
                 line = br.readLine();
                 if (finished_docs % 2000 == 0) log.info("" + finished_docs + " DocMeta loading Finished");
                 finished_docs += 1;
@@ -294,7 +296,7 @@ public class DiskIndexManager {
             		p.data[i][1] = Integer.parseInt(items[i * 2 + 1]);
             	}
                 line = br.readLine();
-                if (term_index % 2000 == 0) log.info("" + term_index + " Posting loading Finished");
+                if (term_index % 2000 == 0) log.info("" + term_index + "title Posting loading Finished");
                 term_index += 1;
             }
         } finally {
@@ -318,7 +320,7 @@ public class DiskIndexManager {
     }
     
     public static void createCorpus() {
-    	//new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
+//    	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.splitted_corpus_folder, true));
     	new DiskIndexManager(Config.index_folder).saveIndexToDisk(new CorpusIndexMaker().makeIndexFromCorpus(CorpusIndexMaker.corpus_folder, false));
     }
     

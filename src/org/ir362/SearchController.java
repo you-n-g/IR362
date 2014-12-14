@@ -1,5 +1,6 @@
 package org.ir362;
 
+import java.awt.print.Printable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,10 +9,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.math.*;
 
+import edu.uci.jforests.util.Pair;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ir362.indexing.DiskIndexManager;
+import org.ir362.indexing.DocMeta;
+import org.ir362.indexing.InvertedIndex;
+import org.ir362.matching.ResultSet;
+import org.ir362.querying.Manager;
+import org.ir362.querying.Request;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 
 public class SearchController {
@@ -22,11 +32,18 @@ public class SearchController {
 	private static String pubDate_prefix = "pubDate:";
 	public final static String  files_folder = Config.project_folder_path + "corpus/";
 	
+	static SearchController sController = null;
+	
+	
+	public String[] last_search_terms; // TODO 这个应该和某次搜索联系起来
+	
+	InvertedIndex index;
+	
 	public SearchController(){
-		
+        index = new DiskIndexManager(Config.index_folder).loadIndexFromDisk();;
 	}
 	
-	String getSnippet(int docID, String[] terms) {//test file：9870
+	public String getSnippet(int docID, String[] terms) {//test file：9870
 		//找到文章里面相应字符串的内容，然后添加到字符串里面
 		String path = files_folder + docID;
 		String Text = "";
@@ -137,16 +154,73 @@ public class SearchController {
 			e.printStackTrace();
 		}
 			return pubDate +"-"+snippet+"...";
-			
-		
-		
 	}
-	 public static void main(String[] args) {
-		 SearchController sc = new SearchController();
-		 String[] terms = {"掩护","张娴"};
-		 String result = sc.getSnippet(9870, terms);
-		 System.out.println(result);
-	 }
+
+	public static void testGetSnippet() {
+        SearchController sc = getController();
+        String[] terms = {"掩护","张娴"};
+        String result = sc.getSnippet(9870, terms);
+        System.out.println(result);
+	}
 	
+	public ArrayList<Integer> getDocIDs(String query) {
+		ArrayList<Integer> docIDs = new ArrayList<Integer>();
+		Manager queryingManager = new Manager(index);
+
+		Request rq = queryingManager.newRequest(query);
+
+		queryingManager.preProcess(rq);  // we obtain
+		queryingManager.runMatching(rq);
+		ResultSet rs = rq.getResultSet();
+
+		int rank = 0;
+		for(Pair<Integer, Double> p : rs.getResultArray())
+            docIDs.add(p.getFirst());
+		
+		ArrayList<String> search_terms = rq.getMatchingTerms().getTerms();
+		this.last_search_terms =  search_terms.toArray(new String[search_terms.size()]);
+		return docIDs;
+	}
 	
+	public String getJsonDocIDs(String query) {
+        ArrayList<Integer> docIDs = getDocIDs(query);
+		JSONArray json_arr = new JSONArray();
+		for (int id: docIDs)
+            json_arr.add(id);
+		return json_arr.toJSONString();
+	}
+	
+	public String getSingleDocJsonInfo(int docID, String[] terms) {
+		if (terms == null)
+			terms = new String[]{};
+		JSONObject json = new JSONObject();
+		DocMeta docMeta = index.documentsMetaInfo.get(docID);
+		if (docMeta == null)
+            return "";
+		json.put("id", docID);
+		json.put("title", docMeta.title);
+		json.put("url", docMeta.url);
+		json.put("commentNumber", docMeta.commentNumber);
+		json.put("date", docMeta.pubDate);
+		json.put("snippet", getSnippet(docID, terms));
+		return json.toJSONString();
+	}
+	
+	static public SearchController getController() {
+		if (sController == null) {
+			sController = new SearchController();
+		}
+		return sController;
+	}
+
+	public static void testAPI() {
+		SearchController sc = new SearchController();
+		System.out.println(sc.getJsonDocIDs("新闻体育"));
+		//System.out.println(sc.getSingleDocJsonInfo(88825, sc.last_search_terms));
+		System.out.println(sc.getSingleDocJsonInfo(12345, sc.last_search_terms));
+	}
+
+    public static void main(String[] args) {
+    	testAPI();
+    }
 }

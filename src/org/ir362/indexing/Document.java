@@ -9,12 +9,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.fnlp.nlp.cn.CNFactory;
+import org.ir362.Config;
 
 
 
@@ -24,7 +26,7 @@ public class Document {
     private String path;
     private int id;
     private boolean is_splitted;
-    static Set stopWordSet = new HashSet<String>();
+    static final Set  stopWordSet = new HashSet<String>();
 
     // 信息在此处 TODO: 信息格式转换
     private String title="";
@@ -53,7 +55,7 @@ public class Document {
 	
 	public void parseLine(String line) {
 		if (line.startsWith(title_prefix)) {
-			title = line.substring(title_prefix.length());
+			title = line.substring(title_prefix.length()).replaceAll("\t", "");
 		}
 		if (line.startsWith(pubDate_prefix)) {
 			pubDate = line.substring(pubDate_prefix.length());
@@ -65,7 +67,7 @@ public class Document {
 			commentNumber = line.substring(commentNumber_prefix.length());
 		}
 		if (line.startsWith(text_prefix)) {
-			text = line.substring(text_prefix.length());
+			text = line.substring(text_prefix.length()).replaceAll("\t", "");
 		}
 	}
 	
@@ -129,46 +131,28 @@ public class Document {
 	public static String[] splitWords(String str) throws Exception {
         // 创建中文处理工厂对象，并使用“models”目录下的模型文件初始化
 		if (factory == null)
-             factory = CNFactory.getInstance("models");
+             factory = CNFactory.getInstance(Config.project_folder_path + "models");
 
         // 使用分词器对中文句子进行分词，得到分词结果
         String[] words = {};
-        String finals = "";
+        ArrayList<String> final_words = new ArrayList<String>();
         
-    	String system_charset = "UTF-8";
 		try {
             words = factory.seg(str);
-            FileInputStream fileS = new FileInputStream(new File("StopWordsTable.txt"));
-    		BufferedReader br = new BufferedReader(new InputStreamReader(fileS,"UTF-8"));
-    			
-    		String stopword = null;
-    		while((stopword = br.readLine())!=null)
-    			stopWordSet.add(stopword);
-    			
-    		String stpw = stopWordSet.toString();
-    		String regex = ", ";
-    		String[] stopcell = stpw.split(regex);
+            if (stopWordSet.isEmpty()) { // 只有停用词没有时才加到set中
+                FileInputStream fileS = new FileInputStream(new File(Config.project_folder_path + "StopWordsTable.txt"));
+                BufferedReader br = new BufferedReader(new InputStreamReader(fileS,"UTF-8"));
+                String stopword = null;
+                while((stopword = br.readLine())!=null)
+                    stopWordSet.add(stopword);
+                br.close();
+                fileS.close();
+            }
             
-    	    for (int m = 0; m < words.length; m++) { 
-//    	    	System.out.print(words[m]);
-    	 		for(int j = 0; j < stopcell.length; j++){
-    	 			if((words[m] != null)  && (words[m].equals(stopcell[j]))){
-    	 				words[m] = "";
-//    	 				System.out.print(m);
-    				}				
-    				}
-    	 		if(!words[m].equals("")){
-    	 			finals += words[m]+" ";
-//    				System.out.print(words[m]);
-    				
-    			}
-    	 		}
-    	    String[] finalWords = finals.split(" ");
-    	    br.close();
-    	    fileS.close();
-    	    
-
-            return finalWords;
+    	    for (int m = 0; m < words.length; m++)
+                if (!stopWordSet.contains(words[m]))
+                	final_words.add(words[m]);
+            return (String[]) final_words.toArray(new String[final_words.size()]);
 		} catch (NullPointerException e) {
 			log.info("Error when spliting:" + str);
 		}
@@ -252,4 +236,8 @@ public class Document {
         */
     	//saveSplittedCorpus();  // 我的功能是将 未分词的语聊转换为已分词语料
     }
+
+	public String getTitle() {
+		return this.title;
+	}
 }

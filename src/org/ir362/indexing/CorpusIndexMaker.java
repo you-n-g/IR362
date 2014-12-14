@@ -101,7 +101,8 @@ public class CorpusIndexMaker {
 						new DocMeta(docLength, 
 								Integer.parseInt(doc.getCommentNumber()),
                                 doc.getPubDate(),
-                                doc.getUrl()
+                                doc.getUrl(),
+                                doc.getTitle()
                             ));
 			} catch (IOException e) {
 				e.printStackTrace();
